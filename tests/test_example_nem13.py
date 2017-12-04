@@ -1,0 +1,66 @@
+import os
+import sys
+import csv
+import nemreader as nr
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..')))
+from nemwriter import NEM13
+
+
+def test_basic_example():
+    export_nem13('actual_accumulated')
+
+
+def export_nem13(example):
+    """ Read in a NEM13 file and check if it is exported the same """
+    # Read in example
+    example_file = 'tests/{}.csv'.format(example)
+    ex = nr.read_nem_file(example_file)
+
+    # Create output file
+    output_file = 'tests/test_output_{}.csv'.format(example)
+    m = NEM13(to_participant=ex.header.to_participant)
+
+    # Add in interval readings
+    to_load = []
+    for nmi in ex.readings:
+        nmi_configuration = ''.join(list(ex.transactions[nmi].keys()))
+        for channel in ex.readings[nmi]:
+            # Build list of readings
+            print(channel)
+            for read in ex.readings[nmi][channel]:
+                print(read)
+                ch = m.add_reading(nmi=nmi,
+                                    nmi_configuration=nmi_configuration,
+                                    register_id=None,
+                                    nmi_suffix=channel,
+                                    previous_read=read.read_start,
+                                    previous_read_date=read.t_start,
+                                    current_read=read.read_end,
+                                    current_read_date=read.t_end,
+                                    current_quality_method=read.quality_method,
+                                    quantity=read.read_value,
+                                    uom=read.uom
+                                    )
+
+    # Export to file
+    output = m.nem_output(file_name=output_file)
+
+    # Compare files
+    original = []
+    with open(example_file, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in reader:
+            original.append(row)
+
+    output = []
+    with open(output_file, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        for row in reader:
+            output.append(row)
+
+    # Compare rows
+    for i, row in enumerate(original):
+        record_indicator = row[0]
+        if record_indicator not in ['100', '200']:
+            assert row == output[i]
