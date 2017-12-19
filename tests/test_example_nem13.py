@@ -1,6 +1,7 @@
 import os
 import sys
 import csv
+import pytest
 import nemreader as nr
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
@@ -27,9 +28,7 @@ def export_nem13(example):
         nmi_configuration = ''.join(list(ex.transactions[nmi].keys()))
         for channel in ex.readings[nmi]:
             # Build list of readings
-            print(channel)
             for read in ex.readings[nmi][channel]:
-                print(read)
                 ch = m.add_reading(nmi=nmi,
                                     nmi_configuration=nmi_configuration,
                                     register_id=None,
@@ -63,4 +62,15 @@ def export_nem13(example):
     for i, row in enumerate(original):
         record_indicator = row[0]
         if record_indicator not in ['100', '200']:
-            assert row == output[i]
+            for j, col in enumerate(row):  
+                if j not in [3, 5, 6, 10, 21, 22]:  
+                    assert cleanse_val(col) == cleanse_val(output[i][j]), f'[{i},{j}] did not match'
+
+
+def cleanse_val(val):
+    new_val = val
+    if val[-2:] == '.0':
+        new_val = val[:-2]
+    else:
+        new_val = val
+    return new_val

@@ -1,6 +1,7 @@
 import os
 import sys
 import csv
+import pytest
 import nemreader as nr
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
@@ -33,7 +34,7 @@ def export_nem12(example):
             # Build list of readings
             for read in ex.readings[nmi][channel]:
                 to_load.append([read.t_end, read.read_value,
-                                read.quality_method, read.event])
+                                read.quality_method, read.event_code, read.event_desc])
 
             # Get common atributes from last reading
             last = ex.readings[nmi][channel][-1:][0]
@@ -66,4 +67,6 @@ def export_nem12(example):
     for i, row in enumerate(original):
         record_indicator = row[0]
         if record_indicator not in ['100', '200']:
-            assert row == output[i]
+            for j, col in enumerate(row):
+                if j not in [4, 5, 53, 54]:                  
+                    assert col.rstrip('0') == output[i][j].rstrip('0'), f'[{i},{j}] did not match'
