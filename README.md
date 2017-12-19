@@ -1,4 +1,7 @@
 # nem-writer
+
+[![Build Status](https://travis-ci.org/aguinane/nem-writer.svg?branch=master)](https://travis-ci.org/aguinane/nem-writer) [![Coverage Status](https://coveralls.io/repos/github/aguinane/nem-writer/badge.svg?branch=master)](https://coveralls.io/github/aguinane/nem-writer?branch=master)
+
 Write meter readings to AEMO NEM12 (interval metering data) and NEM13 (accumulated metering data) data files
 
 
