@@ -89,8 +89,8 @@ class NEM12(object):
         with open(file_name, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
             writer.writerow(self.header)
-            for nmi in self.meters:
-                for ch in self.meters[nmi]:
+            for nmi in sorted(self.meters):
+                for ch in sorted(self.meters[nmi]):
                     channel_header = self.meters[nmi][ch][0]
                     writer.writerow(channel_header)
                     readings = self.meters[nmi][ch][1]

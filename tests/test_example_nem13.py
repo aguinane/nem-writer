@@ -62,9 +62,9 @@ def export_nem13(example):
     for i, row in enumerate(original):
         record_indicator = row[0]
         if record_indicator not in ['100', '200']:
-            for j, col in enumerate(row):  
-                if j not in [3, 5, 6, 10, 21, 22]:  
-                    assert cleanse_val(col) == cleanse_val(output[i][j]), f'[{i},{j}] did not match'
+            for j, col in enumerate(row):
+                if j not in [3, 5, 6, 10, 21, 22]:
+                    assert cleanse_val(col) == cleanse_val(output[i][j]), '[{i},{j}] did not match'.format(i=i, j=j)
 
 
 def cleanse_val(val):

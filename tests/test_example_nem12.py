@@ -68,5 +68,5 @@ def export_nem12(example):
         record_indicator = row[0]
         if record_indicator not in ['100', '200']:
             for j, col in enumerate(row):
-                if j not in [4, 5, 53, 54]:                  
-                    assert col.rstrip('0') == output[i][j].rstrip('0'), f'[{i},{j}] did not match'
+                if j not in [4, 5, 53, 54]:
+                    assert col.rstrip('0') == output[i][j].rstrip('0'), '[{i},{j}] did not match'.format(i=i, j=j)
