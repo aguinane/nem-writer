@@ -81,6 +81,11 @@ class NEM12(object):
         day_progress = minutes / (60 * 24)
         return int(day_progress * num_intervals)
 
+    @staticmethod
+    def get_num_intervals(interval_length):
+        """ Get the number of intervals in a day """
+        return int(60 * 24 / interval_length)
+
     def __repr__(self):
         return "<NEM12 {} {}>".format(self.file_time, self.to_participant)
 
@@ -92,12 +97,13 @@ class NEM12(object):
             for nmi in sorted(self.meters):
                 for ch in sorted(self.meters[nmi]):
                     channel_header = self.meters[nmi][ch][0]
+                    interval_length = channel_header[8]
                     writer.writerow(channel_header)
                     readings = self.meters[nmi][ch][1]
                     for day in readings:
                         day_row = [300, day]
                         day_events = []
-                        for pos in range(0, 48):
+                        for pos in range(0, self.get_num_intervals(interval_length)):
                             try:
                                 read = readings[day][pos]
                                 end = readings[day][pos][2]
@@ -130,7 +136,7 @@ class NEM12(object):
                                 try:
                                     end_pos = day_events[i + 1][0]
                                 except IndexError:
-                                    end_pos = 48
+                                    end_pos = self.get_num_intervals(interval_length)
                                 event_row = ['400', pos + 1, end_pos,
                                              quality, code, event]
                                 event_rows.append(event_row)
