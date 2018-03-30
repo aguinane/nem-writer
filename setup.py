@@ -19,9 +19,10 @@ except FileNotFoundError:
 setup(
     name = 'nemwriter',
     packages = ['nemwriter'],
-    version = '0.1.0',
+    version = '0.1.1',
     description = 'Write meter readings to AEMO NEM12 (interval metering data) and NEM13 (accumulated metering data) data files ',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author = 'aguinane',
     author_email = 'alexguinane@gmail.com',
     url = 'https://github.com/aguinane/nem-writer',
