@@ -6,29 +6,43 @@
 
 import csv
 import datetime
+from typing import Optional
 
 
 class NEM12(object):
     """ An NEM file object """
 
-    def __init__(self, to_participant: str, from_participant=None) -> None:
+    def __init__(
+        self, to_participant: str, from_participant: Optional[str] = None
+    ) -> None:
 
-        version_header = 'NEM12'
-        self.file_time = datetime.datetime.now().strftime('%Y%m%d%H%M')
+        version_header = "NEM12"
+        self.file_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
         self.from_participant = from_participant
         self.to_participant = to_participant
-        self.header = [100, version_header, self.file_time,
-                       from_participant, to_participant]
+        self.header = [
+            100,
+            version_header,
+            self.file_time,
+            from_participant,
+            to_participant,
+        ]
 
         self.meters = dict()
 
-    def add_readings(self, nmi, nmi_configuration, nmi_suffix,
-                     uom, interval_length,
-                     readings,
-                     register_id=None,
-                     mdm_datastream_identitfier=None,
-                     meter_serial_number=None,
-                     next_scheduled_read_date=None):
+    def add_readings(
+        self,
+        nmi,
+        nmi_configuration,
+        nmi_suffix,
+        uom,
+        interval_length,
+        readings,
+        register_id=None,
+        mdm_datastream_identitfier=None,
+        meter_serial_number=None,
+        next_scheduled_read_date=None,
+    ):
 
         if nmi not in self.meters:
             self.meters[nmi] = dict()
@@ -36,16 +50,20 @@ class NEM12(object):
         self.meters[nmi][nmi_suffix] = list()
 
         channel = []
-        channel.append([200, nmi,
-                        nmi_configuration,
-                        register_id,
-                        nmi_suffix,
-                        mdm_datastream_identitfier,
-                        meter_serial_number,
-                        uom,
-                        interval_length,
-                        next_scheduled_read_date]
-                       )
+        channel.append(
+            [
+                200,
+                nmi,
+                nmi_configuration,
+                register_id,
+                nmi_suffix,
+                mdm_datastream_identitfier,
+                meter_serial_number,
+                uom,
+                interval_length,
+                next_scheduled_read_date,
+            ]
+        )
 
         interval_delta = datetime.timedelta(seconds=60 * interval_length)
         reading_dict = dict()
@@ -63,7 +81,7 @@ class NEM12(object):
 
             start = end - interval_delta
             pos = self.get_interval_pos(start, interval_length)
-            date = start.strftime('%Y%m%d')
+            date = start.strftime("%Y%m%d")
             if date not in reading_dict:
                 reading_dict[date] = dict()
             row = (pos, start, end, val, quality, event)
@@ -74,7 +92,7 @@ class NEM12(object):
         self.meters[nmi][nmi_suffix] = channel
 
     @staticmethod
-    def get_interval_pos(start, interval_length):
+    def get_interval_pos(start: int, interval_length: int) -> int:
         """ Get position of time interval """
         num_intervals = 60 * 24 / interval_length
         minutes = (start.hour) * 60 + start.minute
@@ -82,16 +100,16 @@ class NEM12(object):
         return int(day_progress * num_intervals)
 
     @staticmethod
-    def get_num_intervals(interval_length):
+    def get_num_intervals(interval_length: int) -> int:
         """ Get the number of intervals in a day """
         return int(60 * 24 / interval_length)
 
     def __repr__(self):
         return "<NEM12 {} {}>".format(self.file_time, self.to_participant)
 
-    def nem_output(self, file_name='ouput.csv'):
+    def nem_output(self, file_name="output.csv") -> str:
         """ Output NEM file """
-        with open(file_name, 'w', newline='') as csvfile:
+        with open(file_name, "w", newline="") as csvfile:
             writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
             writer.writerow(self.header)
             for nmi in sorted(self.meters):
@@ -117,7 +135,11 @@ class NEM12(object):
                                     prev = day_events[-1]
                                 except IndexError:  # First row
                                     prev = (None, None, None, None)
-                                if (quality, code, event) == (prev[1], prev[2], prev[3]):
+                                if (quality, code, event) == (
+                                    prev[1],
+                                    prev[2],
+                                    prev[3],
+                                ):
                                     pass
                                 else:
                                     event_record = (pos, quality, code, event)
@@ -130,66 +152,88 @@ class NEM12(object):
                             quality_method = day_events[0][1]
                             reason_code = day_events[0][2]
                         else:
-                            quality_method = 'V'
+                            quality_method = "V"
                             reason_code = None
                             for i, (pos, quality, code, event) in enumerate(day_events):
                                 try:
                                     end_pos = day_events[i + 1][0]
                                 except IndexError:
                                     end_pos = self.get_num_intervals(interval_length)
-                                event_row = ['400', pos + 1, end_pos,
-                                             quality, code, event]
+                                event_row = [
+                                    "400",
+                                    pos + 1,
+                                    end_pos,
+                                    quality,
+                                    code,
+                                    event,
+                                ]
                                 event_rows.append(event_row)
 
                         reason_desc = None
                         update_time = None
                         MSTATS_time = None
-                        day_row += [quality_method, reason_code, reason_desc,
-                                    update_time, MSTATS_time]
+                        day_row += [
+                            quality_method,
+                            reason_code,
+                            reason_desc,
+                            update_time,
+                            MSTATS_time,
+                        ]
                         writer.writerow(day_row)
                         if event_rows:
                             for event_row in event_rows:
                                 writer.writerow(event_row)
 
             writer.writerow([900])  # End of data row
-            return csvfile
+        return file_name
 
 
 class NEM13(object):
     """ An NEM file object """
 
-    def __init__(self, to_participant: str, from_participant=None) -> None:
+    def __init__(
+        self, to_participant: str, from_participant: Optional[str] = None
+    ) -> None:
 
-        version_header = 'NEM13'
-        self.file_time = datetime.datetime.now().strftime('%Y%m%d%H%M')
+        version_header = "NEM13"
+        self.file_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
         self.from_participant = from_participant
         self.to_participant = to_participant
-        self.header = [100, version_header, self.file_time,
-                       from_participant, to_participant]
+        self.header = [
+            100,
+            version_header,
+            self.file_time,
+            from_participant,
+            to_participant,
+        ]
 
         self.meters = dict()
 
-    def add_reading(self, nmi, nmi_configuration,
-                    register_id,
-                    nmi_suffix,
-                    previous_read,
-                    previous_read_date,
-                    current_read,
-                    current_read_date,
-                    quantity,
-                    mdm_datastream_identitfier=None,
-                    meter_serial_number=None,
-                    direction_indicator='E',
-                    previous_quality_method=None,
-                    previous_reason_code=None,
-                    previous_reason_desc=None,
-                    current_quality_method=None,
-                    current_reason_code=None,
-                    current_reason_desc=None,
-                    uom='kWh',
-                    next_scheduled_read_date=None,
-                    update_date=None,
-                    mstats_load_date=None):
+    def add_reading(
+        self,
+        nmi,
+        nmi_configuration,
+        register_id,
+        nmi_suffix,
+        previous_read,
+        previous_read_date,
+        current_read,
+        current_read_date,
+        quantity,
+        mdm_datastream_identitfier=None,
+        meter_serial_number=None,
+        direction_indicator="E",
+        previous_quality_method=None,
+        previous_reason_code=None,
+        previous_reason_desc=None,
+        current_quality_method=None,
+        current_reason_code=None,
+        current_reason_desc=None,
+        uom="kWh",
+        next_scheduled_read_date=None,
+        update_date=None,
+        mstats_load_date=None,
+    ):
 
         if nmi not in self.meters:
             self.meters[nmi] = dict()
@@ -197,36 +241,40 @@ class NEM13(object):
         if nmi_suffix not in self.meters[nmi]:
             self.meters[nmi][nmi_suffix] = list()
 
-        data_record = [250, nmi,
-                       nmi_configuration,
-                       register_id,
-                       nmi_suffix,
-                       mdm_datastream_identitfier,
-                       meter_serial_number,
-                       direction_indicator,
-                       previous_read,
-                       previous_read_date.strftime('%Y%m%d%H%M%S'),
-                       previous_quality_method,
-                       previous_reason_code,
-                       previous_reason_desc,
-                       current_read,
-                       current_read_date.strftime('%Y%m%d%H%M%S'),
-                       current_quality_method,
-                       current_reason_code,
-                       current_reason_desc,
-                       quantity,
-                       uom,
-                       next_scheduled_read_date,
-                       update_date, mstats_load_date]
+        data_record = [
+            250,
+            nmi,
+            nmi_configuration,
+            register_id,
+            nmi_suffix,
+            mdm_datastream_identitfier,
+            meter_serial_number,
+            direction_indicator,
+            previous_read,
+            previous_read_date.strftime("%Y%m%d%H%M%S"),
+            previous_quality_method,
+            previous_reason_code,
+            previous_reason_desc,
+            current_read,
+            current_read_date.strftime("%Y%m%d%H%M%S"),
+            current_quality_method,
+            current_reason_code,
+            current_reason_desc,
+            quantity,
+            uom,
+            next_scheduled_read_date,
+            update_date,
+            mstats_load_date,
+        ]
 
         self.meters[nmi][nmi_suffix].append(data_record)
 
     def __repr__(self):
         return "<NEM13 {} {}>".format(self.file_time, self.to_participant)
 
-    def nem_output(self, file_name='ouput.csv'):
+    def nem_output(self, file_name="ouput.csv") -> str:
         """ Output NEM file """
-        with open(file_name, 'w', newline='') as csvfile:
+        with open(file_name, "w", newline="") as csvfile:
             writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
             writer.writerow(self.header)
             for nmi in self.meters:
@@ -236,4 +284,4 @@ class NEM13(object):
                         writer.writerow(reading)
 
             writer.writerow([900])  # End of data row
-            return csvfile
+        return file_name
