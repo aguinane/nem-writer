@@ -103,4 +103,5 @@ ENV/
 .vscode
 
 # Test outputs
+.pytest_cache/
 tests/test_output_*

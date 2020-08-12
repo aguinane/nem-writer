@@ -1,11 +1,7 @@
-import os
-import sys
 import csv
 from pathlib import Path
 import pytest
 import nemreader as nr
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from nemwriter import NEM13
 
 
@@ -46,7 +42,7 @@ def import_export_nem13(input_file):
                 )
 
     # Export to file
-    output = m.nem_output(file_name=output_file)
+    output = m.nem_output(file_path=output_file)
     return output
 
 
