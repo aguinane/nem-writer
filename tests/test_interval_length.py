@@ -18,10 +18,10 @@ def test_15_minutes():
         interval_length=15,
         readings=readings,
     )
-    output_filename = "tests/test_output_15_minute.csv"
-    m.nem_output(file_path=output_filename)
+    output_file = f"tests/{m.nem_filename()}.zip"
+    m.output_zip(output_file)
 
-    readback = nr.read_nem_file(output_filename)
+    readback = nr.read_nem_file(output_file)
     readback_readings = readback.readings["123"]["E1"]
     assert len(readback_readings) == len(readings)
     for i in range(len(readback_readings)):

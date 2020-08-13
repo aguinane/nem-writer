@@ -1,5 +1,4 @@
 import csv
-from pathlib import Path
 import pytest
 import nemreader as nr
 from nemwriter import NEM13
@@ -17,8 +16,6 @@ def import_export_nem13(input_file):
     ex = nr.read_nem_file(input_file)
 
     # Create output file
-    file_stem = Path(input_file).stem
-    output_file = "tests/test_output_{}.csv".format(file_stem)
     m = NEM13(to_participant=ex.header.to_participant)
 
     # Add in interval readings
@@ -42,7 +39,8 @@ def import_export_nem13(input_file):
                 )
 
     # Export to file
-    output = m.nem_output(file_path=output_file)
+    output_file = f"tests/{m.nem_filename()}.csv"
+    output = m.output_csv(file_path=output_file)
     return output
 
 

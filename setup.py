@@ -1,4 +1,4 @@
-"""A setuptools based setup module.
+""" A setuptools based setup module.
 """
 
 # Always prefer setuptools over distutils
@@ -36,7 +36,7 @@ setup_requirements = ["pytest-runner"]
 setup(
     name="nemwriter",
     version=about["__version__"],
-    description="Write meter readings to AEMO NEM12 (interval metering data) and NEM13 (accumulated metering data) data files",
+    description="Write meter readings to AEMO NEM12 and NEM13 data files",
     packages=find_packages(exclude=["contrib", "docs", "tests*"]),
     include_package_data=True,
     long_description=long_description,
@@ -59,6 +59,6 @@ setup(
         [console_scripts]
         nemreader=nemreader.cli:cli
     """,
-    url="https://github.com/aguinane/nem-reader",
-    project_urls={"Bug Reports": "https://github.com/aguinane/nem-reader/issues"},
+    url="https://github.com/aguinane/nem-writer",
+    project_urls={"Bug Reports": "https://github.com/aguinane/nem-writer/issues"},
 )

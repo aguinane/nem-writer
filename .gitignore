@@ -104,4 +104,5 @@ ENV/
 
 # Test outputs
 .pytest_cache/
-tests/test_output_*
+tests/*.zip
+tests/*.csv

@@ -25,7 +25,7 @@ ch = m.add_reading(nmi='123',
                     quantity=100,
                     uom='kWh'
                     )
-output = m.nem_output(file_name='output.csv')
+output = m.output_csv(file_path='output.csv')
 ```
 
 Will output:
@@ -55,7 +55,7 @@ ch = m.add_readings(nmi='123',
                     nmi_suffix='E1', uom='kWh',
                     interval_length=30,
                     readings=readings)
-output = m.nem_output(file_name='output.csv')
+output = m.output_csv(file_path='output.csv')
 ```
 
 Will output:
@@ -67,4 +67,9 @@ Will output:
 400,2,48,A,,
 900
 
+```
+
+Alternatively, save as a compressed csv in a zip file.
+```python
+output = m.output_zip(file_path='output.zip')
 ```
