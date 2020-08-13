@@ -5,4 +5,8 @@
     NEM13 (accumulated metering data) data files
 """
 
-from .nem_writer import NEM12, NEM13
+from .version import __version__
+from .nem12_writer import NEM12
+from .nem13_writer import NEM13
+
+__all__ = ["__version__", "NEM12", "NEM13"]

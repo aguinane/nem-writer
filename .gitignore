@@ -103,4 +103,6 @@ ENV/
 .vscode
 
 # Test outputs
-tests/test_output_*
+.pytest_cache/
+tests/*.zip
+tests/*.csv
