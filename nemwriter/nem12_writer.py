@@ -8,6 +8,7 @@ import csv
 import datetime
 from io import StringIO
 from zipfile import ZipFile, ZipInfo
+from zipfile import ZIP_DEFLATED
 from pathlib import Path
 from typing import Optional, Generator
 
@@ -240,7 +241,7 @@ class NEM12(object):
                 writer.writerow(row)
             csv_str = stream.getvalue()
 
-        with ZipFile(file_path, "w") as zip_archive:
+        with ZipFile(file_path, "w", compression=ZIP_DEFLATED) as zip_archive:
             file1 = ZipInfo(f"{file_path.stem}.csv")
-            zip_archive.writestr(file1, csv_str)
+            zip_archive.writestr(file1, csv_str, compress_type=ZIP_DEFLATED)
         return file_path
