@@ -148,6 +148,7 @@ class NEM12(object):
         interval: int,
         df: DataFrame,
         uoms: Dict[str, str] = UOMS,
+        meter_serial_number: str = "",
     ):
         """Add readings from pandas dataframe"""
 
@@ -162,6 +163,7 @@ class NEM12(object):
                 uom=uom,
                 interval_length=interval,
                 readings=channels[nmi_suffix],
+                meter_serial_number=meter_serial_number,
             )
 
     @staticmethod
