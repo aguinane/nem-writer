@@ -10,7 +10,7 @@ TEST_FILES = [
 
 
 def import_export_nem13(input_file):
-    """ Create export from import """
+    """Create export from import"""
 
     # Read in example
     ex = nr.read_nem_file(input_file)
@@ -29,9 +29,9 @@ def import_export_nem13(input_file):
                     nmi_configuration=nmi_configuration,
                     register_id=None,
                     nmi_suffix=channel,
-                    previous_read=read.read_start,
+                    previous_read=read.val_start,
                     previous_read_date=read.t_start,
-                    current_read=read.read_end,
+                    current_read=read.val_end,
                     current_read_date=read.t_end,
                     current_quality_method=read.quality_method,
                     quantity=read.read_value,
@@ -55,7 +55,7 @@ def cleanse_val(val):
 
 @pytest.mark.parametrize("example_file", TEST_FILES)
 def test_importexport_nem13(example_file):
-    """ Read in a NEM13 file and check if it is exported the same """
+    """Read in a NEM13 file and check if it is exported the same"""
 
     output_file = import_export_nem13(example_file)
 

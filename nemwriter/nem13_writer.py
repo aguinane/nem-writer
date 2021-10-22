@@ -14,7 +14,7 @@ from typing import Optional, Generator
 
 
 class NEM13(object):
-    """ An NEM file object """
+    """An NEM file object"""
 
     def __init__(
         self, to_participant: str, from_participant: Optional[str] = None
@@ -98,7 +98,7 @@ class NEM13(object):
         return "<NEM13 Builder {} {}>".format(self.file_time, self.to_participant)
 
     def build_output(self) -> Generator[list, None, None]:
-        """ Emit rows for NEM file """
+        """Emit rows for NEM file"""
         yield self.header
         for nmi in self.meters:
             for ch in self.meters[nmi]:
@@ -108,7 +108,7 @@ class NEM13(object):
         yield [900]  # End of data row
 
     def nem_filename(self) -> str:
-        """ Return suggested NEM filename """
+        """Return suggested NEM filename"""
         nmis = list(self.meters.keys())
         first_nmi = nmis[0]
         nmi_suffix = list(self.meters[first_nmi].keys())[0]
@@ -122,7 +122,7 @@ class NEM13(object):
         return file_name
 
     def output_csv(self, file_path="") -> str:
-        """ Output NEM file """
+        """Output NEM file"""
         if not file_path:
             file_path = f"{self.nem_filename()}.csv"
         with open(file_path, "w", newline="") as csvfile:
@@ -132,7 +132,7 @@ class NEM13(object):
         return file_path
 
     def output_zip(self, file_path="") -> str:
-        """ Output NEM file """
+        """Output NEM file"""
         if not file_path:
             file_path = f"{self.nem_filename()}.zip"
         file_path = Path(file_path)
