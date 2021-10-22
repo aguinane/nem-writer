@@ -4,8 +4,7 @@
 
 Write meter readings to AEMO NEM12 (interval metering data) and NEM13 (accumulated metering data) data files
 
-
-# Accumulated Data (NEM13)
+## Accumulated Data (NEM13)
 
 ```python
 from datetime import datetime
@@ -35,7 +34,7 @@ Will output:
 900
 ```
 
-# Interval Data (NEM12)
+## Interval Data (NEM12)
 
 ```python
 from datetime import datetime
@@ -73,3 +72,42 @@ Alternatively, save as a compressed csv in a zip file.
 ```python
 output = m.output_zip(file_path='output.zip')
 ```
+
+### From Pandas DataFrame
+
+If you create a pandas DataFrame, for example:
+
+```python
+num_intervals = 288
+index = [datetime(2004, 4, 1) + timedelta(minutes=5*x) for x in range(1,num_intervals+1)]
+e1 = [randrange(1,10) for x in range(1,num_intervals+1)]
+e2 = [randrange(1,5) for x in range(1,num_intervals+1)]
+s1 = pd.Series(data=e1, index=index, name="E1")
+s2 = pd.Series(data=e2, index=index, name="E2")
+df=pd.concat([s1,s2],axis=1)
+print(df)
+```
+
+```
+                     E1  E2
+2004-04-01 00:05:00   2   3
+2004-04-01 00:10:00   8   3
+2004-04-01 00:15:00   7   2
+2004-04-01 00:20:00   4   3
+2004-04-01 00:25:00   3   4
+...                  ..  ..
+2004-04-01 23:40:00   9   2
+2004-04-01 23:45:00   1   1
+2004-04-01 23:50:00   6   2
+2004-04-01 23:55:00   7   1
+2004-04-01 00:00:00   4   2
+```
+
+You can easily output the dataframe to a NEM12 file:
+```python
+m = NEM12(to_participant='123')
+m.add_dataframe(nmi='123', interval=5, df=df, uoms={'E1': 'kWh', 'E2': 'kWh'})
+output = m.output_csv(file_path='output.csv')
+```
+
+If your DataFrame has a `Quality` and `EventDesc` column, they will also be handled appropriately.

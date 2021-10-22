@@ -5,22 +5,61 @@
 """
 
 import csv
-import datetime
+from datetime import datetime, timedelta
 from io import StringIO
-from zipfile import ZipFile, ZipInfo
+from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 from pathlib import Path
-from typing import Optional, Generator
+from typing import Iterable, Optional, Generator
+from typing import Dict, Union
+from pandas import DataFrame
+
+UOMS = {"E1": "kWh", "E2": "kWh", "B1": "kWh"}
+
+
+def convert_to_channels(df: DataFrame) -> Dict[str, list]:
+    """Convert dataframe to lists of channel data
+    Assumes the dataframe index is the end of the metering interval
+    """
+    d = {}
+
+    read_ends = df.index.tolist()
+    channels = list(df.columns)
+
+    if "Quality" in channels:
+        qualities = df["Quality"].tolist()
+        channels.remove("Quality")
+    else:
+        qualities = ["A" for x in read_ends]
+
+    if "EventDesc" in channels:
+        eventdescs = df["EventDesc"].tolist()
+        channels.remove("EventDesc")
+    else:
+        eventdescs = [None for x in read_ends]
+
+    # Input: end, val, quality, event_code, event_desc
+    for channel in channels:
+        ch_data = []
+        for i, val in enumerate(df[channel].tolist()):
+            end = read_ends[i]
+            quality = qualities[i]
+            event_code = None
+            event_desc = eventdescs[i]
+            read = (end, val, quality, event_code, event_desc)
+            ch_data.append(read)
+        d[channel] = ch_data
+    return d
 
 
 class NEM12(object):
-    """ An NEM file object """
+    """An NEM file object"""
 
     def __init__(
         self, to_participant: str, from_participant: Optional[str] = None
     ) -> None:
 
         version_header = "NEM12"
-        self.file_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
+        self.file_time = datetime.now().strftime("%Y%m%d%H%M")
         self.from_participant = from_participant
         self.to_participant = to_participant
         self.header = [
@@ -38,16 +77,16 @@ class NEM12(object):
 
     def add_readings(
         self,
-        nmi,
-        nmi_configuration,
-        nmi_suffix,
-        uom,
-        interval_length,
-        readings,
-        register_id=None,
-        mdm_datastream_identitfier=None,
-        meter_serial_number=None,
-        next_scheduled_read_date=None,
+        nmi: str,
+        nmi_configuration: str,
+        nmi_suffix: str,
+        uom: str,
+        interval_length: int,
+        readings: Iterable[Union[list, tuple]],
+        register_id: str = "",
+        mdm_datastream_identitfier: str = "",
+        meter_serial_number: str = "",
+        next_scheduled_read_date: Optional[datetime] = None,
     ):
 
         if nmi not in self.meters:
@@ -71,7 +110,7 @@ class NEM12(object):
             ]
         )
 
-        interval_delta = datetime.timedelta(seconds=60 * interval_length)
+        interval_delta = timedelta(seconds=60 * interval_length)
         reading_dict = dict()
         for reading in readings:
             # Input: end, val, quality, event_code, event_desc
@@ -103,9 +142,31 @@ class NEM12(object):
 
         self.meters[nmi][nmi_suffix] = channel
 
+    def add_dataframe(
+        self,
+        nmi: str,
+        interval: int,
+        df: DataFrame,
+        uoms: Dict[str, str] = UOMS,
+    ):
+        """Add readings from pandas dataframe"""
+
+        channels = convert_to_channels(df)
+        channel_config = "".join(channels.keys())
+        for nmi_suffix in channels.keys():
+            uom = uoms.get(nmi_suffix, "")
+            self.add_readings(
+                nmi=nmi,
+                nmi_configuration=channel_config,
+                nmi_suffix=nmi_suffix,
+                uom=uom,
+                interval_length=interval,
+                readings=channels[nmi_suffix],
+            )
+
     @staticmethod
     def get_interval_pos(start: int, interval_length: int) -> int:
-        """ Get position of time interval """
+        """Get position of time interval"""
         num_intervals = 60 * 24 / interval_length
         minutes = (start.hour) * 60 + start.minute
         day_progress = minutes / (60 * 24)
@@ -113,11 +174,11 @@ class NEM12(object):
 
     @staticmethod
     def get_num_intervals(interval_length: int) -> int:
-        """ Get the number of intervals in a day """
+        """Get the number of intervals in a day"""
         return int(60 * 24 / interval_length)
 
     def build_output(self) -> Generator[list, None, None]:
-        """ Emit rows for NEM file """
+        """Emit rows for NEM file"""
         yield self.header
         for nmi in sorted(self.meters):
             for ch in sorted(self.meters[nmi]):
@@ -136,7 +197,7 @@ class NEM12(object):
     def get_daily_rows(
         self, day: str, daily_readings: list, interval_length: int
     ) -> Generator[list, None, None]:
-        """ Emit 300 row for the day data and 400 rows if required """
+        """Emit 300 row for the day data and 400 rows if required"""
         day_row = [300, day]
         day_events = []
         num_pos = self.get_num_intervals(interval_length)
@@ -152,7 +213,11 @@ class NEM12(object):
                     prev = day_events[-1]
                 except IndexError:  # First row
                     prev = (None, None, None, None)
-                if (quality, event_code, event_desc) == (prev[1], prev[2], prev[3],):
+                if (quality, event_code, event_desc) == (
+                    prev[1],
+                    prev[2],
+                    prev[3],
+                ):
                     pass
                 else:
                     event_record = (pos, quality, event_code, event_desc)
@@ -204,7 +269,7 @@ class NEM12(object):
             yield event_row
 
     def nem_filename(self) -> str:
-        """ Return suggested NEM filename """
+        """Return suggested NEM filename"""
         nmis = list(self.meters.keys())
         first_nmi = nmis[0]
         nmi_suffix = list(self.meters[first_nmi].keys())[0]
@@ -219,7 +284,7 @@ class NEM12(object):
         return file_name
 
     def output_csv(self, file_path="") -> str:
-        """ Output NEM file """
+        """Output NEM file"""
         if not file_path:
             file_path = f"{self.nem_filename()}.csv"
         with open(file_path, "w", newline="") as csvfile:
@@ -229,7 +294,7 @@ class NEM12(object):
         return file_path
 
     def output_zip(self, file_path="") -> str:
-        """ Output NEM file """
+        """Output NEM file"""
         if not file_path:
             file_path = f"{self.nem_filename()}.zip"
         file_path = Path(file_path)
@@ -240,7 +305,7 @@ class NEM12(object):
                 writer.writerow(row)
             csv_str = stream.getvalue()
 
-        with ZipFile(file_path, "w") as zip_archive:
+        with ZipFile(file_path, "w", compression=ZIP_DEFLATED) as zip_archive:
             file1 = ZipInfo(f"{file_path.stem}.csv")
-            zip_archive.writestr(file1, csv_str)
+            zip_archive.writestr(file1, csv_str, compress_type=ZIP_DEFLATED)
         return file_path
