@@ -6,6 +6,7 @@ from nemwriter import NEM12
 TEST_FILES = [
     "examples/actual_interval.csv",
     "examples/multiple_quality.csv",
+    "examples/interval_change.csv"
 ]
 
 
