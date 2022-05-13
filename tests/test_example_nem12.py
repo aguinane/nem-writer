@@ -19,12 +19,13 @@ def import_export_nem12(input_file, zip_output=False):
     m = NEM12(to_participant=ex.header.to_participant)
 
     # Add in interval readings
-    to_load = []
+
     for nmi in ex.readings:
         nmi_configuration = "".join(list(ex.transactions[nmi].keys()))
-        for channel in ex.readings[nmi]:
+        for nmi_suffix in ex.readings[nmi]:
+            to_load = []
             # Build list of readings
-            for read in ex.readings[nmi][channel]:
+            for read in ex.readings[nmi][nmi_suffix]:
                 to_load.append(
                     [
                         read.t_end,
@@ -36,13 +37,14 @@ def import_export_nem12(input_file, zip_output=False):
                 )
 
             # Get common atributes from last reading
-            last = ex.readings[nmi][channel][-1:][0]
+            last = ex.readings[nmi][nmi_suffix][-1:][0]
             uom = last.uom
+
 
             m.add_readings(
                 nmi=nmi,
                 nmi_configuration=nmi_configuration,
-                nmi_suffix=channel,
+                nmi_suffix=nmi_suffix,
                 uom=uom,
                 readings=to_load,
             )
@@ -98,12 +100,13 @@ def test_importexport_nem12(example_file):
             output.append(row)
 
     # Compare rows
+
     for i, row in enumerate(original):
         record_indicator = row[0]
+        num_cols = len(row)
         if record_indicator not in ["100", "200"]:
             for j, col in enumerate(row):
-                if j not in [4, 5, 53, 54]:
-
+                if j not in [4, 5] and j < (num_cols - 5):
                     try:
                         clean_i = float(col)
                     except ValueError:
@@ -113,6 +116,6 @@ def test_importexport_nem12(example_file):
                     except ValueError:
                         clean_j = output[i][j]
 
-                    assert clean_i == clean_j, "[{i},{j}] did not match".format(
+                    assert clean_i == clean_j, "Row {i} Col {j} did not match".format(
                         i=i, j=j
                     )

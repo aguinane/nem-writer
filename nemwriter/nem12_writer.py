@@ -5,6 +5,7 @@
 """
 
 import csv
+from collections import defaultdict
 from datetime import datetime, timedelta
 from io import StringIO
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
@@ -70,7 +71,8 @@ class NEM12(object):
             to_participant,
         ]
 
-        self.meters = dict()
+        self.meters = {}
+        self.days = []
 
     def __repr__(self):
         return "<NEM12 Builder {} {}>".format(self.file_time, self.to_participant)
@@ -89,11 +91,10 @@ class NEM12(object):
     ):
 
         if nmi not in self.meters:
-            self.meters[nmi] = dict()
+            self.meters[nmi] = {}
 
-        self.meters[nmi][nmi_suffix] = list()
-
-        channel = []
+        if nmi_suffix not in self.meters[nmi]:
+            self.meters[nmi][nmi_suffix] = []
 
         daily_readings = {}
         for reading in readings:
@@ -107,12 +108,18 @@ class NEM12(object):
                 daily_readings[date].append(reading)
 
         dates = [x for x in daily_readings.keys()]
-        first = daily_readings[dates[0]][0]
-        second = daily_readings[dates[0]][1]
-        interval_delta = second[0] - first[0]
-        interval_length = int(interval_delta.seconds / 60)
-        channel.append(
-            [
+        self.days = dates
+
+        last_header = []
+        reading_dict = dict()
+        for date in dates:
+
+            first = daily_readings[date][0]
+            second = daily_readings[date][1]
+            interval_delta = second[0] - first[0]
+            interval_length = int(interval_delta.seconds / 60)
+
+            channel_header = [
                 200,
                 nmi,
                 nmi_configuration,
@@ -124,10 +131,13 @@ class NEM12(object):
                 interval_length,
                 next_scheduled_read_date,
             ]
-        )
 
-        reading_dict = dict()
-        for date in dates:
+            if channel_header != last_header:
+                self.meters[nmi][nmi_suffix].append(channel_header)
+
+            last_header = channel_header
+
+            rows = []
             for reading in daily_readings[date]:
                 # Input: end, val, quality, event_code, event_desc
                 # Output: pos, start, end, val, quality, event_code, event_desc
@@ -153,11 +163,10 @@ class NEM12(object):
                 if date not in reading_dict:
                     reading_dict[date] = dict()
                 row = (pos, start, end, val, quality, event_code, event_desc)
-                reading_dict[date][pos] = row
+                rows.append(row)
 
-        channel.append(reading_dict)
-
-        self.meters[nmi][nmi_suffix] = channel
+            for row in self.get_daily_rows(date, rows, interval_length):
+                self.meters[nmi][nmi_suffix].append(row)
 
     def add_dataframe(
         self,
@@ -198,17 +207,10 @@ class NEM12(object):
         """Emit rows for NEM file"""
         yield self.header
         for nmi in sorted(self.meters):
-            for ch in sorted(self.meters[nmi]):
-                channel_header = self.meters[nmi][ch][0]
-                interval_length = channel_header[8]
-                yield channel_header
-                readings = self.meters[nmi][ch][1]
-                for day in readings:
-                    daily_readings = readings[day]
-                    for row in self.get_daily_rows(
-                        day, daily_readings, interval_length
-                    ):
-                        yield row
+            suffixes = list(self.meters[nmi].keys())
+            for ch in sorted(suffixes):
+                for row in self.meters[nmi][ch]:
+                    yield row
         yield [900]  # End of data row
 
     def get_daily_rows(
@@ -289,10 +291,8 @@ class NEM12(object):
         """Return suggested NEM filename"""
         nmis = list(self.meters.keys())
         first_nmi = nmis[0]
-        nmi_suffix = list(self.meters[first_nmi].keys())[0]
-        days = list(self.meters[first_nmi][nmi_suffix][-1].keys())
-        start = days[0]
-        end = days[-1]
+        start = self.days[0]
+        end = self.days[-1]
         if len(nmis) > 1:
             uid = f"{start}_{end}"
         else:
