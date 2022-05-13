@@ -4,7 +4,7 @@ from nemwriter import NEM12
 
 
 def test_15_minutes():
-    """ should be able to write 15 minute files, and read them back correctly. """
+    """should be able to write 15 minute files, and read them back correctly."""
     m = NEM12(to_participant="123")
     readings = [
         [datetime(2004, 4, 18, 0, 0) + timedelta(minutes=15 * (i + 1)), i, "A"]
@@ -15,7 +15,6 @@ def test_15_minutes():
         nmi_configuration="E1B1B2",
         nmi_suffix="E1",
         uom="kWh",
-        interval_length=15,
         readings=readings,
     )
     output_file = f"tests/{m.nem_filename()}.zip"
