@@ -94,9 +94,21 @@ class NEM12(object):
         self.meters[nmi][nmi_suffix] = list()
 
         channel = []
-        readings = list(readings)
-        first = readings[0]
-        second = readings[1]
+
+        daily_readings = {}
+        for reading in readings:
+            end = reading[0]
+            start = end - timedelta(seconds=5)
+            date = start.strftime("%Y%m%d")
+
+            if date not in daily_readings:
+                daily_readings[date] = [reading]
+            else:
+                daily_readings[date].append(reading)
+
+        dates = [x for x in daily_readings.keys()]
+        first = daily_readings[dates[0]][0]
+        second = daily_readings[dates[0]][1]
         interval_delta = second[0] - first[0]
         interval_length = int(interval_delta.seconds / 60)
         channel.append(
@@ -114,35 +126,34 @@ class NEM12(object):
             ]
         )
 
-        interval_delta = timedelta(seconds=60 * interval_length)
         reading_dict = dict()
-        for reading in readings:
-            # Input: end, val, quality, event_code, event_desc
-            # Output: pos, start, end, val, quality, event_code, event_desc
-            end = reading[0]
-            val = reading[1]
-            if val == 0.0:
-                val = 0  # Make int to make file smaller
-            try:
-                quality = reading[2]
-            except IndexError:
-                quality = None
-            try:
-                event_code = reading[3]
-            except IndexError:
-                event_code = None
-            try:
-                event_desc = reading[4]
-            except IndexError:
-                event_desc = None
+        for date in dates:
+            for reading in daily_readings[date]:
+                # Input: end, val, quality, event_code, event_desc
+                # Output: pos, start, end, val, quality, event_code, event_desc
+                end = reading[0]
+                val = reading[1]
+                if val == 0.0:
+                    val = 0  # Make int to make file smaller
+                try:
+                    quality = reading[2]
+                except IndexError:
+                    quality = None
+                try:
+                    event_code = reading[3]
+                except IndexError:
+                    event_code = None
+                try:
+                    event_desc = reading[4]
+                except IndexError:
+                    event_desc = None
 
-            start = end - interval_delta
-            pos = self.get_interval_pos(start, interval_length)
-            date = start.strftime("%Y%m%d")
-            if date not in reading_dict:
-                reading_dict[date] = dict()
-            row = (pos, start, end, val, quality, event_code, event_desc)
-            reading_dict[date][pos] = row
+                start = end - interval_delta
+                pos = self.get_interval_pos(start, interval_length)
+                if date not in reading_dict:
+                    reading_dict[date] = dict()
+                row = (pos, start, end, val, quality, event_code, event_desc)
+                reading_dict[date][pos] = row
 
         channel.append(reading_dict)
 
