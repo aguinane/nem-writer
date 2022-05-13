@@ -81,7 +81,6 @@ class NEM12(object):
         nmi_configuration: str,
         nmi_suffix: str,
         uom: str,
-        interval_length: int,
         readings: Iterable[Union[list, tuple]],
         register_id: str = "",
         mdm_datastream_identitfier: str = "",
@@ -95,6 +94,11 @@ class NEM12(object):
         self.meters[nmi][nmi_suffix] = list()
 
         channel = []
+        readings = list(readings)
+        first = readings[0]
+        second = readings[1]
+        interval_delta = second[0] - first[0]
+        interval_length = int(interval_delta.seconds / 60)
         channel.append(
             [
                 200,
@@ -117,6 +121,8 @@ class NEM12(object):
             # Output: pos, start, end, val, quality, event_code, event_desc
             end = reading[0]
             val = reading[1]
+            if val == 0.0:
+                val = 0  # Make int to make file smaller
             try:
                 quality = reading[2]
             except IndexError:
@@ -145,7 +151,6 @@ class NEM12(object):
     def add_dataframe(
         self,
         nmi: str,
-        interval: int,
         df: DataFrame,
         uoms: Dict[str, str] = UOMS,
         meter_serial_number: str = "",
@@ -161,7 +166,6 @@ class NEM12(object):
                 nmi_configuration=channel_config,
                 nmi_suffix=nmi_suffix,
                 uom=uom,
-                interval_length=interval,
                 readings=channels[nmi_suffix],
                 meter_serial_number=meter_serial_number,
             )

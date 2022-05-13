@@ -52,7 +52,6 @@ readings = [
 ch = m.add_readings(nmi='123',
                     nmi_configuration='E1B1B2',
                     nmi_suffix='E1', uom='kWh',
-                    interval_length=30,
                     readings=readings)
 output = m.output_csv(file_path='output.csv')
 ```

@@ -26,7 +26,7 @@ def test_dataframe_export():
 
     m = NEM12(to_participant="A123")
 
-    m.add_dataframe(nmi="A123", interval=5, df=df, uoms={"E1": "kWh", "E2": "kWh"})
+    m.add_dataframe(nmi="A123", df=df, uoms={"E1": "kWh", "E2": "kWh"})
     output_file = f"tests/{m.nem_filename()}.zip"
     fp = m.output_zip(file_path=output_file)
     assert fp.name == f"{m.nem_filename()}.zip"
