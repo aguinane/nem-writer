@@ -113,11 +113,17 @@ class NEM12(object):
         last_header = []
         reading_dict = dict()
         for date in dates:
-
-            first = daily_readings[date][0]
-            second = daily_readings[date][1]
-            interval_delta = second[0] - first[0]
-            interval_length = int(interval_delta.seconds / 60)
+            # Determine the interval length
+            interval_lengths = []
+            for i, _ in enumerate(daily_readings[date]):
+                if i == 0:
+                    continue
+                first = daily_readings[date][i - 1]
+                second = daily_readings[date][i]
+                interval_delta = second[0] - first[0]
+                interval_length = int(interval_delta.seconds / 60)
+                interval_lengths.append(interval_length)
+            interval_length = min(interval_lengths)
 
             channel_header = [
                 200,
@@ -217,32 +223,44 @@ class NEM12(object):
         self, day: str, daily_readings: list, interval_length: int
     ) -> Generator[list, None, None]:
         """Emit 300 row for the day data and 400 rows if required"""
+
+        day_reads_dict = {}
+        for read in daily_readings:
+            pos = read[0]  # pos is first item in tuple
+            day_reads_dict[pos] = read
+
         day_row = [300, day]
         day_events = []
         num_pos = self.get_num_intervals(interval_length)
+
         for pos in range(0, num_pos):
             try:
-                read = daily_readings[pos]
+                read = day_reads_dict[pos]
                 # pos, start, end, val, quality, event_code, event_desc
                 val = read[3]
                 quality = read[4]
                 event_code = read[5]
                 event_desc = read[6]
-                try:
-                    prev = day_events[-1]
-                except IndexError:  # First row
-                    prev = (None, None, None, None)
-                if (quality, event_code, event_desc) == (
-                    prev[1],
-                    prev[2],
-                    prev[3],
-                ):
-                    pass
-                else:
-                    event_record = (pos, quality, event_code, event_desc)
-                    day_events.append(event_record)
             except KeyError:
-                val = None
+                val = 0
+                quality = "N"
+                event_code = None
+                event_desc = None
+
+            try:
+                prev = day_events[-1]
+            except IndexError:  # First row
+                prev = (None, None, None, None)
+
+            if (quality, event_code, event_desc) == (
+                prev[1],
+                prev[2],
+                prev[3],
+            ):
+                pass
+            else:
+                event_record = (pos, quality, event_code, event_desc)
+                day_events.append(event_record)
             day_row.append(val)
 
         event_rows = []

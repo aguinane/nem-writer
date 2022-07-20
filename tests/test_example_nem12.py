@@ -40,7 +40,6 @@ def import_export_nem12(input_file, zip_output=False):
             last = ex.readings[nmi][nmi_suffix][-1:][0]
             uom = last.uom
 
-
             m.add_readings(
                 nmi=nmi,
                 nmi_configuration=nmi_configuration,
