@@ -114,6 +114,8 @@ class NEM12(object):
         reading_dict = dict()
         for date in dates:
             # Determine the interval length
+            interval_length = 5  # Assume default in case needed
+            interval_delta = timedelta(minutes=5)
             interval_lengths = []
             for i, _ in enumerate(daily_readings[date]):
                 if i == 0:
@@ -123,7 +125,8 @@ class NEM12(object):
                 interval_delta = second[0] - first[0]
                 interval_length = int(interval_delta.seconds / 60)
                 interval_lengths.append(interval_length)
-            interval_length = min(interval_lengths)
+            if interval_lengths:
+                interval_length = min(interval_lengths)
 
             channel_header = [
                 200,
