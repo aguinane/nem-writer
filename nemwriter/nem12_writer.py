@@ -12,6 +12,7 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 from pathlib import Path
 from typing import Iterable, Optional, Generator
 from typing import Dict, Union
+import numpy as np
 from pandas import DataFrame
 
 UOMS = {"E1": "kWh", "E2": "kWh", "B1": "kWh"}
@@ -42,6 +43,8 @@ def convert_to_channels(df: DataFrame) -> Dict[str, list]:
     for channel in channels:
         ch_data = []
         for i, val in enumerate(df[channel].tolist()):
+            if np.isnan(val):
+                continue  # Skip Nulls
             end = read_ends[i]
             quality = qualities[i]
             event_code = None
