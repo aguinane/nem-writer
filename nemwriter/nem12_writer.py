@@ -55,6 +55,13 @@ def convert_to_channels(df: DataFrame) -> Dict[str, list]:
     return d
 
 
+def remove_zero_decimal(x: float) -> Union[float, int]:
+    """Make integer when decimal is a zero to shrink file size"""
+    if x != int(x):
+        return x
+    return int(x)
+
+
 class NEM12(object):
     """An NEM file object"""
 
@@ -155,8 +162,7 @@ class NEM12(object):
                 # Output: pos, start, end, val, quality, event_code, event_desc
                 end = reading[0]
                 val = reading[1]
-                if val == 0.0:
-                    val = 0  # Make int to make file smaller
+                val = remove_zero_decimal(val)  # Make int to make file smaller
                 try:
                     quality = reading[2]
                 except IndexError:
