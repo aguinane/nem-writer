@@ -98,6 +98,8 @@ class NEM12(object):
         mdm_datastream_identitfier: str = "",
         meter_serial_number: str = "",
         next_scheduled_read_date: Optional[datetime] = None,
+        update_datetime: Optional[datetime] = None,
+        msats_load_datetime: Optional[datetime] = None,
     ):
 
         if nmi not in self.meters:
@@ -183,7 +185,9 @@ class NEM12(object):
                 row = (pos, start, end, val, quality, event_code, event_desc)
                 rows.append(row)
 
-            for row in self.get_daily_rows(date, rows, interval_length):
+            for row in self.get_daily_rows(
+                date, rows, interval_length, update_datetime, msats_load_datetime
+            ):
                 self.meters[nmi][nmi_suffix].append(row)
 
     def add_dataframe(
@@ -232,7 +236,12 @@ class NEM12(object):
         yield [900]  # End of data row
 
     def get_daily_rows(
-        self, day: str, daily_readings: list, interval_length: int
+        self,
+        day: str,
+        daily_readings: list,
+        interval_length: int,
+        update_datetime: Optional[datetime],
+        msats_load_datetime: Optional[datetime],
     ) -> Generator[list, None, None]:
         """Emit 300 row for the day data and 400 rows if required"""
 
@@ -301,15 +310,23 @@ class NEM12(object):
                     desc,
                 ]
                 event_rows.append(event_row)
+
+        datetime_format = "%Y%m%d%H%M%S"
+
         update_time = None
-        MSTATS_time = None
+        if update_datetime is not None:
+            update_time = update_datetime.strftime(datetime_format)
+
+        msats_time = None
+        if msats_load_datetime is not None:
+            msats_time = msats_load_datetime.strftime(datetime_format)
 
         day_row_end = [
             quality_method,
             event_code,
             event_desc,
             update_time,
-            MSTATS_time,
+            msats_time,
         ]
         day_row += day_row_end
         yield day_row
