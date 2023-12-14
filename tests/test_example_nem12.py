@@ -1,6 +1,8 @@
 import csv
-import pytest
+
 import nemreader as nr
+import pytest
+
 from nemwriter import NEM12
 
 TEST_FILES = [

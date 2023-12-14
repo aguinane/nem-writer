@@ -7,10 +7,9 @@
 import csv
 import datetime
 from io import StringIO
-from zipfile import ZipFile, ZipInfo
-from zipfile import ZIP_DEFLATED
 from pathlib import Path
-from typing import Optional, Generator
+from typing import Generator, Optional
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 
 class NEM13(object):
@@ -19,7 +18,6 @@ class NEM13(object):
     def __init__(
         self, to_participant: str, from_participant: Optional[str] = None
     ) -> None:
-
         version_header = "NEM13"
         self.file_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
         self.from_participant = from_participant
@@ -33,6 +31,15 @@ class NEM13(object):
         ]
 
         self.meters = dict()
+
+    def __repr__(self):
+        return "<NEM13 Builder {} {}>".format(self.file_time, self.to_participant)
+
+    @property
+    def is_empty(self) -> bool:
+        if not self.meters:
+            return True
+        return False
 
     def add_reading(
         self,
@@ -59,7 +66,6 @@ class NEM13(object):
         update_date=None,
         mstats_load_date=None,
     ):
-
         if nmi not in self.meters:
             self.meters[nmi] = dict()
 
@@ -94,9 +100,6 @@ class NEM13(object):
 
         self.meters[nmi][nmi_suffix].append(data_record)
 
-    def __repr__(self):
-        return "<NEM13 Builder {} {}>".format(self.file_time, self.to_participant)
-
     def build_output(self) -> Generator[list, None, None]:
         """Emit rows for NEM file"""
         yield self.header
@@ -123,6 +126,10 @@ class NEM13(object):
 
     def output_csv(self, file_path="") -> str:
         """Output NEM file"""
+
+        if self.is_empty:
+            raise ValueError("No readings to output")
+
         if not file_path:
             file_path = f"{self.nem_filename()}.csv"
         with open(file_path, "w", newline="") as csvfile:
@@ -133,6 +140,10 @@ class NEM13(object):
 
     def output_zip(self, file_path="") -> str:
         """Output NEM file"""
+
+        if self.is_empty:
+            raise ValueError("No readings to output")
+
         if not file_path:
             file_path = f"{self.nem_filename()}.zip"
         file_path = Path(file_path)

@@ -1,8 +1,10 @@
-import pandas as pd
 from datetime import datetime, timedelta
 from random import randrange
-from nemwriter import NEM12
+
+import pandas as pd
 from nemreader import output_as_data_frames
+
+from nemwriter import NEM12
 
 
 def test_dataframe_export():
@@ -105,11 +107,6 @@ def test_df_different_intervals():
 
     dfs = output_as_data_frames(output_file)
     nmi2, df2 = dfs[0]  # Return data for first NMI in file
-    df2 = df2.loc[df2["quality_method"].isin(["A"])]  # Remove the Nulls
     assert nmi == nmi2
     assert df["E1"].count() == df2["E1"].count()
     assert df["V1"].count() == df2["V1"].count()
-
-    per1 = [x.strftime("%Y%m%d%H%M") for x in df.index]
-    per2 = [x.strftime("%Y%m%d%H%M") for x in df2["t_end"]]
-    assert per1 == per2

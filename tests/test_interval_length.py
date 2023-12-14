@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+
 import nemreader as nr
+
 from nemwriter import NEM12
 
 
