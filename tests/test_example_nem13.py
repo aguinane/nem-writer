@@ -1,8 +1,9 @@
 import csv
-import pytest
-import nemreader as nr
-from nemwriter import NEM13
 
+import nemreader as nr
+import pytest
+
+from nemwriter import NEM13
 
 TEST_FILES = [
     "examples/actual_accumulated.csv",

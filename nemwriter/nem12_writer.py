@@ -5,13 +5,12 @@
 """
 
 import csv
-from collections import defaultdict
 from datetime import datetime, timedelta
 from io import StringIO
-from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 from pathlib import Path
-from typing import Iterable, Optional, Generator
-from typing import Dict, Union
+from typing import Dict, Generator, Iterable, Optional, Union
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
+
 import numpy as np
 from pandas import DataFrame
 
@@ -68,7 +67,6 @@ class NEM12(object):
     def __init__(
         self, to_participant: str, from_participant: Optional[str] = None
     ) -> None:
-
         version_header = "NEM12"
         self.file_time = datetime.now().strftime("%Y%m%d%H%M")
         self.from_participant = from_participant
@@ -87,6 +85,12 @@ class NEM12(object):
     def __repr__(self):
         return "<NEM12 Builder {} {}>".format(self.file_time, self.to_participant)
 
+    @property
+    def is_empty(self) -> bool:
+        if not self.meters:
+            return True
+        return False
+
     def add_readings(
         self,
         nmi: str,
@@ -101,7 +105,6 @@ class NEM12(object):
         update_datetime: Optional[datetime] = None,
         msats_load_datetime: Optional[datetime] = None,
     ):
-
         if nmi not in self.meters:
             self.meters[nmi] = {}
 
@@ -336,19 +339,22 @@ class NEM12(object):
 
     def nem_filename(self) -> str:
         """Return suggested NEM filename"""
-        nmis = list(self.meters.keys())
-        first_nmi = nmis[0]
         start = self.days[0]
         end = self.days[-1]
-        if len(nmis) > 1:
-            uid = f"{start}_{end}"
-        else:
+        nmis = list(self.meters.keys())
+        first_nmi = nmis[0]
+        if len(nmis) == 1:
             uid = f"{first_nmi}_{start}_{end}"
+        else:
+            uid = f"{start}_{end}"
         file_name = f"NEM12#{uid}#{self.from_participant}#{self.to_participant}"
         return file_name
 
     def output_csv(self, file_path="") -> str:
         """Output NEM file"""
+        if self.is_empty:
+            raise ValueError("No readings to output")
+
         if not file_path:
             file_path = f"{self.nem_filename()}.csv"
         with open(file_path, "w", newline="") as csvfile:
@@ -359,6 +365,9 @@ class NEM12(object):
 
     def output_zip(self, file_path="") -> str:
         """Output NEM file"""
+        if self.is_empty:
+            raise ValueError("No readings to output")
+
         if not file_path:
             file_path = f"{self.nem_filename()}.zip"
         file_path = Path(file_path)

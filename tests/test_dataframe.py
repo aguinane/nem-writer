@@ -1,8 +1,10 @@
-import pandas as pd
 from datetime import datetime, timedelta
 from random import randrange
-from nemwriter import NEM12
+
+import pandas as pd
 from nemreader import output_as_data_frames
+
+from nemwriter import NEM12
 
 
 def test_dataframe_export():
