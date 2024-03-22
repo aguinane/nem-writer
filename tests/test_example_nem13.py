@@ -47,10 +47,7 @@ def import_export_nem13(input_file):
 
 def cleanse_val(val):
     new_val = val
-    if val[-2:] == ".0":
-        new_val = val[:-2]
-    else:
-        new_val = val
+    new_val = val[:-2] if val[-2:] == ".0" else val
     return new_val
 
 

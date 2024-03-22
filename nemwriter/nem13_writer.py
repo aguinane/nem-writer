@@ -106,8 +106,7 @@ class NEM13:
         for nmi in self.meters:
             for ch in self.meters[nmi]:
                 readings = self.meters[nmi][ch]
-                for reading in readings:
-                    yield reading
+                yield from readings
         yield [900]  # End of data row
 
     def nem_filename(self) -> str:
@@ -117,10 +116,7 @@ class NEM13:
         nmi_suffix = list(self.meters[first_nmi].keys())[0]
         start = self.meters[first_nmi][nmi_suffix][0][9][0:8]  # Previous read
         end = self.meters[first_nmi][nmi_suffix][-1][14][0:8]  # Current read
-        if len(nmis) > 1:
-            uid = f"{start}_{end}"
-        else:
-            uid = f"{first_nmi}_{start}_{end}"
+        uid = f"{start}_{end}" if len(nmis) > 1 else f"{first_nmi}_{start}_{end}"
         file_name = f"NEM13#{uid}#{self.from_participant}#{self.to_participant}"
         return file_name
 

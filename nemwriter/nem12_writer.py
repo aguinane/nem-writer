@@ -122,7 +122,7 @@ class NEM12:
             else:
                 daily_readings[date].append(reading)
 
-        dates = [x for x in daily_readings.keys()]
+        dates = [x for x in daily_readings]
         self.days = dates
 
         last_header = []
@@ -204,7 +204,7 @@ class NEM12:
 
         channels = convert_to_channels(df)
         channel_config = "".join(channels.keys())
-        for nmi_suffix in channels.keys():
+        for nmi_suffix in channels:
             uom = uoms.get(nmi_suffix, "")
             self.add_readings(
                 nmi=nmi,
@@ -234,8 +234,7 @@ class NEM12:
         for nmi in sorted(self.meters):
             suffixes = list(self.meters[nmi].keys())
             for ch in sorted(suffixes):
-                for row in self.meters[nmi][ch]:
-                    yield row
+                yield from self.meters[nmi][ch]
         yield [900]  # End of data row
 
     def get_daily_rows(
@@ -343,10 +342,7 @@ class NEM12:
         end = self.days[-1]
         nmis = list(self.meters.keys())
         first_nmi = nmis[0]
-        if len(nmis) == 1:
-            uid = f"{first_nmi}_{start}_{end}"
-        else:
-            uid = f"{start}_{end}"
+        uid = f"{first_nmi}_{start}_{end}" if len(nmis) == 1 else f"{start}_{end}"
         file_name = f"NEM12#{uid}#{self.from_participant}#{self.to_participant}"
         return file_name
 
