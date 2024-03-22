@@ -47,10 +47,7 @@ def import_export_nem13(input_file):
 
 def cleanse_val(val):
     new_val = val
-    if val[-2:] == ".0":
-        new_val = val[:-2]
-    else:
-        new_val = val
+    new_val = val[:-2] if val[-2:] == ".0" else val
     return new_val
 
 
@@ -81,4 +78,4 @@ def test_importexport_nem13(example_file):
                 if j not in [3, 5, 6, 10, 21, 22]:
                     assert cleanse_val(col) == cleanse_val(
                         output[i][j]
-                    ), "[{i},{j}] did not match".format(i=i, j=j)
+                    ), f"[{i},{j}] did not match"

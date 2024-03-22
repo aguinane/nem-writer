@@ -77,6 +77,11 @@ output = m.output_zip(file_path='output.zip')
 If you create a pandas DataFrame, for example:
 
 ```python
+from datetime import datetime, timedelta
+from nemwriter import NEM12
+from random import randrange
+import pandas as pd
+
 num_intervals = 288
 index = [datetime(2004, 4, 1) + timedelta(minutes=5*x) for x in range(1,num_intervals+1)]
 e1 = [randrange(1,10) for x in range(1,num_intervals+1)]
@@ -105,7 +110,7 @@ print(df)
 You can easily output the dataframe to a NEM12 file:
 ```python
 m = NEM12(to_participant='123')
-m.add_dataframe(nmi='123', interval=5, df=df, uoms={'E1': 'kWh', 'E2': 'kWh'})
+m.add_dataframe(nmi='123', df=df, uoms={'E1': 'kWh', 'E2': 'kWh'})
 output = m.output_csv(file_path='output.csv')
 ```
 
