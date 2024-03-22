@@ -81,4 +81,4 @@ def test_importexport_nem13(example_file):
                 if j not in [3, 5, 6, 10, 21, 22]:
                     assert cleanse_val(col) == cleanse_val(
                         output[i][j]
-                    ), "[{i},{j}] did not match".format(i=i, j=j)
+                    ), f"[{i},{j}] did not match"

@@ -61,7 +61,7 @@ def remove_zero_decimal(x: float) -> Union[float, int]:
     return int(x)
 
 
-class NEM12(object):
+class NEM12:
     """An NEM file object"""
 
     def __init__(
@@ -83,7 +83,7 @@ class NEM12(object):
         self.days = []
 
     def __repr__(self):
-        return "<NEM12 Builder {} {}>".format(self.file_time, self.to_participant)
+        return f"<NEM12 Builder {self.file_time} {self.to_participant}>"
 
     @property
     def is_empty(self) -> bool:

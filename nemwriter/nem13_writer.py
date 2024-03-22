@@ -12,7 +12,7 @@ from typing import Generator, Optional
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 
-class NEM13(object):
+class NEM13:
     """An NEM file object"""
 
     def __init__(
@@ -33,7 +33,7 @@ class NEM13(object):
         self.meters = dict()
 
     def __repr__(self):
-        return "<NEM13 Builder {} {}>".format(self.file_time, self.to_participant)
+        return f"<NEM13 Builder {self.file_time} {self.to_participant}>"
 
     @property
     def is_empty(self) -> bool:
