@@ -6,9 +6,9 @@
 
 import csv
 import datetime
+from collections.abc import Generator
 from io import StringIO
 from pathlib import Path
-from typing import Generator, Optional
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 
@@ -16,7 +16,7 @@ class NEM13:
     """An NEM file object"""
 
     def __init__(
-        self, to_participant: str, from_participant: Optional[str] = None
+        self, to_participant: str, from_participant: str | None = None
     ) -> None:
         version_header = "NEM13"
         self.file_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
