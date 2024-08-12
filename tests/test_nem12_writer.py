@@ -6,7 +6,8 @@ from nemwriter import NEM12
 
 def test_add_readings_adds_300_row_timestamps():
     """
-    update_datetime and msats_load_datetime should be added to the end of 300 rows if provided.
+    update_datetime and msats_load_datetime should be
+    added to the end of 300 rows if provided.
     """
     # Create a NEM12 CSV with one 300 row of 30-minute reads.
     nem12 = NEM12(to_participant="123")

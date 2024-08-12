@@ -5,10 +5,10 @@
 """
 
 import csv
+from collections.abc import Generator, Iterable
 from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
-from typing import Dict, Generator, Iterable, Optional, Union
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 import numpy as np
@@ -17,7 +17,7 @@ from pandas import DataFrame
 UOMS = {"E1": "kWh", "E2": "kWh", "B1": "kWh"}
 
 
-def convert_to_channels(df: DataFrame) -> Dict[str, list]:
+def convert_to_channels(df: DataFrame) -> dict[str, list]:
     """Convert dataframe to lists of channel data
     Assumes the dataframe index is the end of the metering interval
     """
@@ -54,18 +54,18 @@ def convert_to_channels(df: DataFrame) -> Dict[str, list]:
     return d
 
 
-def remove_zero_decimal(x: float) -> Union[float, int]:
+def remove_zero_decimal(x: float) -> float | int:
     """Make integer when decimal is a zero to shrink file size"""
     if x != int(x):
         return x
     return int(x)
 
 
-class NEM12(object):
+class NEM12:
     """An NEM file object"""
 
     def __init__(
-        self, to_participant: str, from_participant: Optional[str] = None
+        self, to_participant: str, from_participant: str | None = None
     ) -> None:
         version_header = "NEM12"
         self.file_time = datetime.now().strftime("%Y%m%d%H%M")
@@ -83,7 +83,7 @@ class NEM12(object):
         self.days = []
 
     def __repr__(self):
-        return "<NEM12 Builder {} {}>".format(self.file_time, self.to_participant)
+        return f"<NEM12 Builder {self.file_time} {self.to_participant}>"
 
     @property
     def is_empty(self) -> bool:
@@ -97,13 +97,13 @@ class NEM12(object):
         nmi_configuration: str,
         nmi_suffix: str,
         uom: str,
-        readings: Iterable[Union[list, tuple]],
+        readings: Iterable[list | tuple],
         register_id: str = "",
         mdm_datastream_identitfier: str = "",
         meter_serial_number: str = "",
-        next_scheduled_read_date: Optional[datetime] = None,
-        update_datetime: Optional[datetime] = None,
-        msats_load_datetime: Optional[datetime] = None,
+        next_scheduled_read_date: datetime | None = None,
+        update_datetime: datetime | None = None,
+        msats_load_datetime: datetime | None = None,
     ):
         if nmi not in self.meters:
             self.meters[nmi] = {}
@@ -122,7 +122,7 @@ class NEM12(object):
             else:
                 daily_readings[date].append(reading)
 
-        dates = [x for x in daily_readings.keys()]
+        dates = [x for x in daily_readings]
         self.days = dates
 
         last_header = []
@@ -197,14 +197,14 @@ class NEM12(object):
         self,
         nmi: str,
         df: DataFrame,
-        uoms: Dict[str, str] = UOMS,
+        uoms: dict[str, str] = UOMS,
         meter_serial_number: str = "",
     ):
         """Add readings from pandas dataframe"""
 
         channels = convert_to_channels(df)
         channel_config = "".join(channels.keys())
-        for nmi_suffix in channels.keys():
+        for nmi_suffix in channels:
             uom = uoms.get(nmi_suffix, "")
             self.add_readings(
                 nmi=nmi,
@@ -234,8 +234,7 @@ class NEM12(object):
         for nmi in sorted(self.meters):
             suffixes = list(self.meters[nmi].keys())
             for ch in sorted(suffixes):
-                for row in self.meters[nmi][ch]:
-                    yield row
+                yield from self.meters[nmi][ch]
         yield [900]  # End of data row
 
     def get_daily_rows(
@@ -243,8 +242,8 @@ class NEM12(object):
         day: str,
         daily_readings: list,
         interval_length: int,
-        update_datetime: Optional[datetime],
-        msats_load_datetime: Optional[datetime],
+        update_datetime: datetime | None,
+        msats_load_datetime: datetime | None,
     ) -> Generator[list, None, None]:
         """Emit 300 row for the day data and 400 rows if required"""
 
@@ -343,10 +342,7 @@ class NEM12(object):
         end = self.days[-1]
         nmis = list(self.meters.keys())
         first_nmi = nmis[0]
-        if len(nmis) == 1:
-            uid = f"{first_nmi}_{start}_{end}"
-        else:
-            uid = f"{start}_{end}"
+        uid = f"{first_nmi}_{start}_{end}" if len(nmis) == 1 else f"{start}_{end}"
         file_name = f"NEM12#{uid}#{self.from_participant}#{self.to_participant}"
         return file_name
 

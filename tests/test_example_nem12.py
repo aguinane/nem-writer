@@ -117,6 +117,4 @@ def test_importexport_nem12(example_file):
                     except ValueError:
                         clean_j = output[i][j]
 
-                    assert clean_i == clean_j, "Row {i} Col {j} did not match".format(
-                        i=i, j=j
-                    )
+                    assert clean_i == clean_j, f"Row {i} Col {j} did not match"

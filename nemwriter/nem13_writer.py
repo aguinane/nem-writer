@@ -6,17 +6,17 @@
 
 import csv
 import datetime
+from collections.abc import Generator
 from io import StringIO
 from pathlib import Path
-from typing import Generator, Optional
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 
-class NEM13(object):
+class NEM13:
     """An NEM file object"""
 
     def __init__(
-        self, to_participant: str, from_participant: Optional[str] = None
+        self, to_participant: str, from_participant: str | None = None
     ) -> None:
         version_header = "NEM13"
         self.file_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
@@ -33,7 +33,7 @@ class NEM13(object):
         self.meters = dict()
 
     def __repr__(self):
-        return "<NEM13 Builder {} {}>".format(self.file_time, self.to_participant)
+        return f"<NEM13 Builder {self.file_time} {self.to_participant}>"
 
     @property
     def is_empty(self) -> bool:
@@ -106,8 +106,7 @@ class NEM13(object):
         for nmi in self.meters:
             for ch in self.meters[nmi]:
                 readings = self.meters[nmi][ch]
-                for reading in readings:
-                    yield reading
+                yield from readings
         yield [900]  # End of data row
 
     def nem_filename(self) -> str:
@@ -117,10 +116,7 @@ class NEM13(object):
         nmi_suffix = list(self.meters[first_nmi].keys())[0]
         start = self.meters[first_nmi][nmi_suffix][0][9][0:8]  # Previous read
         end = self.meters[first_nmi][nmi_suffix][-1][14][0:8]  # Current read
-        if len(nmis) > 1:
-            uid = f"{start}_{end}"
-        else:
-            uid = f"{first_nmi}_{start}_{end}"
+        uid = f"{start}_{end}" if len(nmis) > 1 else f"{first_nmi}_{start}_{end}"
         file_name = f"NEM13#{uid}#{self.from_participant}#{self.to_participant}"
         return file_name
 
