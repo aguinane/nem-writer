@@ -1,4 +1,3 @@
-
 import pytest
 
 from nemwriter import NEM12, NEM13

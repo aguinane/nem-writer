@@ -76,6 +76,6 @@ def test_importexport_nem13(example_file):
         if record_indicator not in ["100", "200"]:
             for j, col in enumerate(row):
                 if j not in [3, 5, 6, 10, 21, 22]:
-                    assert cleanse_val(col) == cleanse_val(
-                        output[i][j]
-                    ), f"[{i},{j}] did not match"
+                    assert cleanse_val(col) == cleanse_val(output[i][j]), (
+                        f"[{i},{j}] did not match"
+                    )

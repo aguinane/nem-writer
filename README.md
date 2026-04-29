@@ -1,6 +1,8 @@
 # nem-writer
 
-[![PyPI version](https://badge.fury.io/py/nemwriter.svg)](https://badge.fury.io/py/nemwriter) [![Build Status](https://travis-ci.org/aguinane/nem-writer.svg?branch=master)](https://travis-ci.org/aguinane/nem-writer) [![Coverage Status](https://coveralls.io/repos/github/aguinane/nem-writer/badge.svg?branch=master)](https://coveralls.io/github/aguinane/nem-writer?branch=master)
+[![PyPI version](https://img.shields.io/pypi/pyversions/nemwriter)](https://pypi.org/project/nemwriter/)
+[![PyPi downloads](https://img.shields.io/pypi/dw/nemwriter)](https://pypi.org/project/nemwriter/)
+
 
 Write meter readings to AEMO NEM12 (interval metering data) and NEM13 (accumulated metering data) data files
 
@@ -72,23 +74,28 @@ Alternatively, save as a compressed csv in a zip file.
 output = m.output_zip(file_path='output.zip')
 ```
 
-### From Pandas DataFrame
+### From Polars DataFrame
 
-If you create a pandas DataFrame, for example:
+If you create a polars DataFrame, for example:
 
 ```python
 from datetime import datetime, timedelta
 from nemwriter import NEM12
 from random import randrange
-import pandas as pd
+import polars as pl
 
 num_intervals = 288
-index = [datetime(2004, 4, 1) + timedelta(minutes=5*x) for x in range(1,num_intervals+1)]
-e1 = [randrange(1,10) for x in range(1,num_intervals+1)]
-e2 = [randrange(1,5) for x in range(1,num_intervals+1)]
-s1 = pd.Series(data=e1, index=index, name="E1")
-s2 = pd.Series(data=e2, index=index, name="E2")
-df=pd.concat([s1,s2],axis=1)
+timestamps = [
+    datetime(2004, 4, 1) + timedelta(minutes=5 * x)
+    for x in range(1, num_intervals + 1)
+]
+e1 = [randrange(1, 10) for x in range(1, num_intervals + 1)]
+e2 = [randrange(1, 5) for x in range(1, num_intervals + 1)]
+df = pl.DataFrame({
+    "t_end": timestamps,
+    "E1": e1,
+    "E2": e2,
+})
 print(df)
 ```
 

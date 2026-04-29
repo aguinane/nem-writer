@@ -1,7 +1,7 @@
 """
-    nemwriter.nem_writer
-    ~~~~~
-    Write meter readings to MDFF format
+nemwriter.nem_writer
+~~~~~
+Write meter readings to MDFF format
 """
 
 import csv
@@ -37,9 +37,7 @@ class NEM13:
 
     @property
     def is_empty(self) -> bool:
-        if not self.meters:
-            return True
-        return False
+        return bool(not self.meters)
 
     def add_reading(
         self,

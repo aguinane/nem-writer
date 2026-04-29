@@ -1,7 +1,7 @@
 """
-    nemwriter.nem_writer
-    ~~~~~
-    Write meter readings to MDFF format
+nemwriter.nem_writer
+~~~~~
+Write meter readings to MDFF format
 """
 
 import csv
@@ -11,29 +11,31 @@ from io import StringIO
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
-import numpy as np
-from pandas import DataFrame
+import polars as pl
 
 UOMS = {"E1": "kWh", "E2": "kWh", "B1": "kWh"}
 
 
-def convert_to_channels(df: DataFrame) -> dict[str, list]:
+def convert_to_channels(df: pl.DataFrame) -> dict[str, list]:
     """Convert dataframe to lists of channel data
-    Assumes the dataframe index is the end of the metering interval
+    Expects the dataframe to have a timestamp column as the first column
+    which represents the end of the metering interval
     """
     d = {}
 
-    read_ends = df.index.tolist()
-    channels = list(df.columns)
+    # Get timestamp column (first column) and convert to list
+    timestamp_col = df.columns[0]
+    read_ends = df[timestamp_col].to_list()
+    channels = list(df.columns[1:])  # Skip timestamp column
 
     if "Quality" in channels:
-        qualities = df["Quality"].tolist()
+        qualities = df["Quality"].to_list()
         channels.remove("Quality")
     else:
         qualities = ["A" for x in read_ends]
 
     if "EventDesc" in channels:
-        eventdescs = df["EventDesc"].tolist()
+        eventdescs = df["EventDesc"].to_list()
         channels.remove("EventDesc")
     else:
         eventdescs = [None for x in read_ends]
@@ -41,9 +43,10 @@ def convert_to_channels(df: DataFrame) -> dict[str, list]:
     # Input: end, val, quality, event_code, event_desc
     for channel in channels:
         ch_data = []
-        for i, val in enumerate(df[channel].tolist()):
-            if np.isnan(val):
-                continue  # Skip Nulls
+        for i, val in enumerate(df[channel].to_list()):
+            # Skip null values
+            if val is None:
+                continue
             end = read_ends[i]
             quality = qualities[i]
             event_code = None
@@ -87,9 +90,7 @@ class NEM12:
 
     @property
     def is_empty(self) -> bool:
-        if not self.meters:
-            return True
-        return False
+        return bool(not self.meters)
 
     def add_readings(
         self,
@@ -196,11 +197,11 @@ class NEM12:
     def add_dataframe(
         self,
         nmi: str,
-        df: DataFrame,
+        df: pl.DataFrame,
         uoms: dict[str, str] = UOMS,
         meter_serial_number: str = "",
     ):
-        """Add readings from pandas dataframe"""
+        """Add readings from polars dataframe"""
 
         channels = convert_to_channels(df)
         channel_config = "".join(channels.keys())
@@ -359,7 +360,7 @@ class NEM12:
                 writer.writerow(row)
         return file_path
 
-    def output_zip(self, file_path="") -> str:
+    def output_zip(self, file_path="") -> Path:
         """Output NEM file"""
         if self.is_empty:
             raise ValueError("No readings to output")
