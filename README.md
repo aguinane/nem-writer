@@ -1,8 +1,9 @@
 # nem-writer
 
-[![PyPI version](https://img.shields.io/pypi/pyversions/nemwriter)](https://pypi.org/project/nemwriter/)
-[![PyPi downloads](https://img.shields.io/pypi/dw/nemwriter)](https://pypi.org/project/nemwriter/)
+[![PyPI version](https://img.shields.io/pypi/pyversions/nemwriter)][pypi]
+[![PyPi downloads](https://img.shields.io/pypi/dw/nemwriter)][pypi]
 
+[pypi]: https://pypi.org/project/nemwriter/
 
 Write meter readings to AEMO NEM12 (interval metering data) and NEM13 (accumulated metering data) data files
 
