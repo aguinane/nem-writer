@@ -30,7 +30,7 @@ class NEM13:
             to_participant,
         ]
 
-        self.meters = dict()
+        self.meters = {}
 
     def __repr__(self):
         return f"<NEM13 Builder {self.file_time} {self.to_participant}>"
@@ -65,10 +65,10 @@ class NEM13:
         mstats_load_date=None,
     ):
         if nmi not in self.meters:
-            self.meters[nmi] = dict()
+            self.meters[nmi] = {}
 
         if nmi_suffix not in self.meters[nmi]:
-            self.meters[nmi][nmi_suffix] = list()
+            self.meters[nmi][nmi_suffix] = []
 
         data_record = [
             250,
@@ -111,7 +111,7 @@ class NEM13:
         """Return suggested NEM filename"""
         nmis = list(self.meters.keys())
         first_nmi = nmis[0]
-        nmi_suffix = list(self.meters[first_nmi].keys())[0]
+        nmi_suffix = next(iter(self.meters[first_nmi].keys()))
         start = self.meters[first_nmi][nmi_suffix][0][9][0:8]  # Previous read
         end = self.meters[first_nmi][nmi_suffix][-1][14][0:8]  # Current read
         uid = f"{start}_{end}" if len(nmis) > 1 else f"{first_nmi}_{start}_{end}"

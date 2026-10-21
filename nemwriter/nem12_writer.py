@@ -28,15 +28,21 @@ def convert_to_channels(df: pl.DataFrame) -> dict[str, list]:
     read_ends = df[timestamp_col].to_list()
     channels = list(df.columns[1:])  # Skip timestamp column
 
-    if "Quality" in channels:
-        qualities = df["Quality"].to_list()
-        channels.remove("Quality")
+    if "quality" in channels:
+        qualities = df["quality"].to_list()
+        channels.remove("quality")
     else:
         qualities = ["A" for x in read_ends]
 
-    if "EventDesc" in channels:
-        eventdescs = df["EventDesc"].to_list()
-        channels.remove("EventDesc")
+    if "evt_code" in channels:
+        eventcodes = df["evt_code"].to_list()
+        channels.remove("evt_code")
+    else:
+        eventcodes = [None for x in read_ends]
+
+    if "evt_desc" in channels:
+        eventdescs = df["evt_desc"].to_list()
+        channels.remove("evt_desc")
     else:
         eventdescs = [None for x in read_ends]
 
@@ -49,7 +55,7 @@ def convert_to_channels(df: pl.DataFrame) -> dict[str, list]:
                 continue
             end = read_ends[i]
             quality = qualities[i]
-            event_code = None
+            event_code = eventcodes[i]
             event_desc = eventdescs[i]
             read = (end, val, quality, event_code, event_desc)
             ch_data.append(read)
@@ -127,7 +133,7 @@ class NEM12:
         self.days = dates
 
         last_header = []
-        reading_dict = dict()
+        reading_dict = {}
         for date in dates:
             # Determine the interval length
             interval_length = 5  # Assume default in case needed
@@ -185,7 +191,7 @@ class NEM12:
                 start = end - interval_delta
                 pos = self.get_interval_pos(start, interval_length)
                 if date not in reading_dict:
-                    reading_dict[date] = dict()
+                    reading_dict[date] = {}
                 row = (pos, start, end, val, quality, event_code, event_desc)
                 rows.append(row)
 
@@ -257,7 +263,7 @@ class NEM12:
         day_events = []
         num_pos = self.get_num_intervals(interval_length)
 
-        for pos in range(0, num_pos):
+        for pos in range(num_pos):
             try:
                 read = day_reads_dict[pos]
                 # pos, start, end, val, quality, event_code, event_desc

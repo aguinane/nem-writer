@@ -58,17 +58,13 @@ def test_importexport_nem13(example_file):
     output_file = import_export_nem13(example_file)
 
     # Compare files
-    original = []
     with open(example_file, newline="") as csvfile:
         reader = csv.reader(csvfile, delimiter=",", quotechar='"')
-        for row in reader:
-            original.append(row)
+        original = list(reader)
 
-    output = []
     with open(output_file, newline="") as csvfile:
         reader = csv.reader(csvfile, delimiter=",", quotechar='"')
-        for row in reader:
-            output.append(row)
+        output = list(reader)
 
     # Compare rows
     for i, row in enumerate(original):

@@ -2,9 +2,10 @@ from datetime import datetime, timedelta
 from random import randrange
 
 import polars as pl
-from nemreader import output_as_data_frames
+from nemreader import NEMFile, output_as_data_frames
 
 from nemwriter import NEM12
+from nemwriter.example_data import random_energy_dataframe
 
 EXAMPLE_START = datetime(2004, 4, 2)
 
@@ -117,3 +118,27 @@ def test_df_different_intervals():
     assert df["E1"].count() == df2_result["E1"].count()
     # V1 might not be present in all rows due to different intervals
     assert df["V1"].count() == df2_result["V1"].count()
+
+
+def test_df_with_qualities():
+    """Create export from dataframe with quality codes"""
+
+    start_time = datetime(2004, 1, 1)
+
+    df1 = random_energy_dataframe(start_time, num_days=1, interval=60)
+    nmi = "X123456789"
+    m = NEM12(to_participant=nmi)
+    m.add_dataframe(nmi=nmi, df=df1, uoms={"B1": "kWh", "E1": "kWh", "E2": "kWh"})
+    m.output_csv(file_path="output.csv")
+
+    m2 = NEMFile("output.csv")
+    df2 = m2.get_data_frame_wide()
+    assert df2 is not None
+
+    # Check that the columns match
+    for col in ["t_end", "B1", "E1", "E2", "quality", "evt_desc"]:
+        assert col in df1.columns
+        assert col in df2.columns
+        col1 = df1[col].to_list()
+        col2 = df2[col].to_list()
+        assert col1 == col2, f"Column {col} does not match"

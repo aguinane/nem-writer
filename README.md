@@ -13,21 +13,22 @@ Write meter readings to AEMO NEM12 (interval metering data) and NEM13 (accumulat
 from datetime import datetime
 from nemwriter import NEM13
 
-m = NEM13(to_participant='123')
-ch = m.add_reading(nmi='123',
-                    nmi_configuration='E1B1B2',
-                    register_id='1',
-                    nmi_suffix='E1',
-                    previous_read=412,
-                    previous_read_date=datetime(2017,1,1),
-                    previous_quality_method='A',
-                    current_read=512,
-                    current_read_date=datetime(2017,2,1),
-                    current_quality_method='A',
-                    quantity=100,
-                    uom='kWh'
-                    )
-output = m.output_csv(file_path='output.csv')
+m = NEM13(to_participant="123")
+ch = m.add_reading(
+    nmi="123",
+    nmi_configuration="E1B1B2",
+    register_id="1",
+    nmi_suffix="E1",
+    previous_read=412,
+    previous_read_date=datetime(2017, 1, 1),
+    previous_quality_method="A",
+    current_read=512,
+    current_read_date=datetime(2017, 2, 1),
+    current_quality_method="A",
+    quantity=100,
+    uom="kWh",
+)
+output = m.output_csv(file_path="output.csv")
 ```
 
 Will output:
@@ -43,20 +44,19 @@ Will output:
 from datetime import datetime
 from nemwriter import NEM12
 
-m = NEM12(to_participant='123')
+m = NEM12(to_participant="123")
 readings = [
     # read end, read value, quality method, event code, event desc
-    [datetime(2004, 4, 18, 0, 30), 10.1, 'A', 79, 'Power Outage Alarm'],
-    [datetime(2004, 4, 18, 1, 0), 11.2, 'A'],
-    [datetime(2004, 4, 18, 1, 30), 12.3, 'A'],
-    [datetime(2004, 4, 18, 2, 0), 13.4, 'A'],
+    [datetime(2004, 4, 18, 0, 30), 10.1, "A", 79, "Power Outage Alarm"],
+    [datetime(2004, 4, 18, 1, 0), 11.2, "A"],
+    [datetime(2004, 4, 18, 1, 30), 12.3, "A"],
+    [datetime(2004, 4, 18, 2, 0), 13.4, "A"],
 ]
 
-ch = m.add_readings(nmi='123',
-                    nmi_configuration='E1B1B2',
-                    nmi_suffix='E1', uom='kWh',
-                    readings=readings)
-output = m.output_csv(file_path='output.csv')
+ch = m.add_readings(
+    nmi="123", nmi_configuration="E1B1B2", nmi_suffix="E1", uom="kWh", readings=readings
+)
+output = m.output_csv(file_path="output.csv")
 ```
 
 Will output:
@@ -72,7 +72,7 @@ Will output:
 
 Alternatively, save as a compressed csv in a zip file.
 ```python
-output = m.output_zip(file_path='output.zip')
+output = m.output_zip(file_path="output.zip")
 ```
 
 ### From Polars DataFrame
@@ -87,16 +87,17 @@ import polars as pl
 
 num_intervals = 288
 timestamps = [
-    datetime(2004, 4, 1) + timedelta(minutes=5 * x)
-    for x in range(1, num_intervals + 1)
+    datetime(2004, 4, 1) + timedelta(minutes=5 * x) for x in range(1, num_intervals + 1)
 ]
 e1 = [randrange(1, 10) for x in range(1, num_intervals + 1)]
 e2 = [randrange(1, 5) for x in range(1, num_intervals + 1)]
-df = pl.DataFrame({
-    "t_end": timestamps,
-    "E1": e1,
-    "E2": e2,
-})
+df = pl.DataFrame(
+    {
+        "t_end": timestamps,
+        "E1": e1,
+        "E2": e2,
+    }
+)
 print(df)
 ```
 
@@ -117,9 +118,9 @@ print(df)
 
 You can easily output the dataframe to a NEM12 file:
 ```python
-m = NEM12(to_participant='123')
-m.add_dataframe(nmi='123', df=df, uoms={'E1': 'kWh', 'E2': 'kWh'})
-output = m.output_csv(file_path='output.csv')
+m = NEM12(to_participant="123")
+m.add_dataframe(nmi="123", df=df, uoms={"E1": "kWh", "E2": "kWh"})
+output = m.output_csv(file_path="output.csv")
 ```
 
 If your DataFrame has a `Quality` and `EventDesc` column, they will also be handled appropriately.
