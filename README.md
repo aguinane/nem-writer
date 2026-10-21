@@ -123,4 +123,29 @@ m.add_dataframe(nmi="123", df=df, uoms={"E1": "kWh", "E2": "kWh"})
 output = m.output_csv(file_path="output.csv")
 ```
 
-If your DataFrame has a `Quality` and `EventDesc` column, they will also be handled appropriately.
+If your DataFrame has a `quality` and `event_desc` column, they will also be handled appropriately.
+
+## Another Example
+
+```python
+from datetime import datetime
+
+from nemreader import NEMFile
+
+from nemwriter import NEM12
+from nemwriter.example_data import random_energy_dataframe
+
+# Create an example NEM12 file with 10 NMIs, each with one year of 5-min data
+start_time = datetime(2004, 1, 1)
+m = NEM12(to_participant="EXAMPLEONLY")
+for i in range(1, 11):
+    nmi = f"X0000{i:05d}"
+    df = random_energy_dataframe(start_time, num_days=365, interval=5)
+    m.add_dataframe(nmi=nmi, df=df, uoms={"B1": "kWh", "E1": "kWh", "E2": "kWh"})
+output = m.output_csv(file_path="large_example.csv")
+
+# Load it back in to check it looks right
+m2 = NEMFile("large_example.csv")
+df = m2.get_data_frame_wide()
+print(df)
+```
